@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Timer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+        }
+
+        #timerContainer {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #timer {
+            font-size: 5em;
+            font-weight: bold;
+            color: black;
+            text-align: center;
+            flex: 2;
+            display: flex;
+            align-items: center;
+            position: relative;
+            top: 2cm; /* Ajustez cette valeur selon vos besoins */
+        }
+
+        #customTextContainer {
+            text-align: center;
+            font-family: 'Ink Free', sans-serif;
+            flex: 1;
+        }
+
+        #customText {
+            font-size: 4em; /* Ajustez cette valeur selon vos besoins */
+            font-weight: bold;
+            color: black;
+            display: inline-block;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #backgroundImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            z-index: 1;
+        }
+
+        #controls button {
+            font-size: 1em;
+            margin: 3px;
+            padding: 6px;
+        }
+
+        input {
+            font-size: 1em;
+            margin-bottom: 10px;
+            padding: 3px;
+        }
+
+        #fullscreenBtn {
+            font-size: 1em;
+            margin: 3px;
+            padding: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="chooseImage()">Choose Image</button>
+        <br>
+        <button onclick="setCustomText()">Set Custom Text</button>
+        <br>
+        <input type="number" id="minutes" placeholder="Enter minutes" min="1" required>
+        <br>
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop</button>
+        <button onclick="resetTimer()">Reset</button>
+        <button id="fullscreenBtn" onclick="toggleFullScreen()">Fullscreen</button>
+    </div>
+
+    <div id="timerContainer">
+        <div id="timer"></div>
+        <div id="customTextContainer">
+            <div id="customText"></div>
+        </div>
+        <img id="backgroundImage" alt="Background Image" crossorigin="anonymous">
+    </div>
+
+    <script>
+        let seconds = 0;
+        let timer;
+        let isFullScreen = false;
+
+        function chooseImage() {
+            const imageUrl = prompt("Enter image URL for background:");
+            document.getElementById("backgroundImage").src = imageUrl;
+        }
+
+        function setCustomText() {
+            const customText = prompt("Enter custom text:");
+            const customTextElement = document.getElementById("customText");
+            
+            if (customText) {
+                customTextElement.innerText = customText;
+                customTextElement.style.fontSize = '8em'; // Ajustez cette valeur selon vos besoins
+            }
+        }
+
+        function startTimer() {
+            const minutes = document.getElementById("minutes").value;
+            getRandomLandscapeImage().then(imageUrl => {
+                if (minutes <= 0 || isNaN(minutes)) {
+                    alert("Please enter a valid number of minutes.");
+                    return;
+                }
+
+                seconds = minutes * 60;
+                updateTimer();
+
+                if (imageUrl) {
+                    document.getElementById("backgroundImage").src = imageUrl;
+                }
+
+                timer = setInterval(updateTimer, 1000);
+                toggleFullScreen(); // Activer le mode plein écran au début du minuteur
+            });
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+
+            const formattedTime =
+                (minutes < 10 ? "0" : "") + minutes + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds;
+
+            document.getElementById("timer").innerText = formattedTime;
+
+            if (seconds > 0) {
+                seconds--;
+            } else {
+                clearInterval(timer);
+            }
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            document.getElementById("timer").innerText = "00:00";
+        }
+
+        async function getRandomLandscapeImage() {
+            // Liste des URL pour des images de paysages aléatoires
+            const landscapeImages = [
+                "https://source.unsplash.com/800x600/?landscape",
+                "https://source.unsplash.com/800x600/?mountains",
+                "https://source.unsplash.com/800x600/?beach",
+                "https://source.unsplash.com/800x600/?sky",
+                // Ajoutez plus d'URL au besoin
+            ];
+
+            // Sélectionnez une URL d'image aléatoire de la liste
+            const randomIndex = Math.floor(Math.random() * landscapeImages.length);
+            return landscapeImages[randomIndex];
+        }
+
+        function toggleFullScreen() {
+            const timerContainer = document.getElementById("timerContainer");
+
+            if (!isFullScreen) {
+                if (timerContainer.requestFullscreen) {
+                    timerContainer.requestFullscreen();
+                } else if (timerContainer.mozRequestFullScreen) {
+                    timerContainer.mozRequestFullScreen();
+                } else if (timerContainer.webkitRequestFullscreen) {
+                    timerContainer.webkitRequestFullscreen();
+                } else if (timerContainer.msRequestFullscreen) {
+                    timerContainer.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+
+            isFullScreen = !isFullScreen;
+            toggleControlsVisibility();
+        }
+
+        function toggleControlsVisibility() {
+            const controls = document.getElementById("controls");
+
+            controls.style.display = isFullScreen ? "none" : "flex";
+        }
+
+        document.addEventListener("fullscreenchange", function () {
+            isFullScreen = !isFullScreen;
+            toggleControlsVisibility();
+        });
+
+        document.addEventListener("mozfullscreenchange", function () {
+            isFullScreen = !isFullScreen;
+            toggleControlsVisibility();
+        });
+
+        document.addEventListener("webkitfullscreenchange", function () {
+            isFullScreen = !isFullScreen;
+            toggleControlsVisibility();
+        });
+
+        document.addEventListener("msfullscreenchange", function () {
+            isFullScreen = !isFullScreen;
+            toggleControlsVisibility();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                if (isFullScreen) {
+                    toggleFullScreen();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
